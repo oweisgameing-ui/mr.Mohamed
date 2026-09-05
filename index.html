@@ -249,13 +249,19 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap: 4px;
+  gap: 2px;
   background: var(--bg);
   color: var(--ink-soft);
   font-size: 13px;
 }
 .slot .slot-num{ font-size: 12px; color: var(--ink-soft); }
 .slot .slot-mark{ font-size: 24px; line-height:1; }
+.slot .slot-date {
+  font-size: 9px;
+  color: var(--ink-soft);
+  opacity: 0.7;
+  margin-top: 2px;
+}
 .slot.present{ background: var(--present-bg); border-color: var(--present); }
 .slot.present .slot-mark{ color: var(--present); }
 .slot.absent{ background: var(--absent-bg); border-color: var(--absent); }
@@ -307,13 +313,6 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
 @media (max-width: 520px){
   .stats-row{ grid-template-columns: 1fr 1fr; }
   .stats-row .stat-card:last-child{ grid-column: 1 / -1; }
-}
-
-.slot .slot-date {
-  font-size: 9px;
-  color: var(--ink-soft);
-  opacity: 0.7;
-  margin-top: 2px;
 }
 </style>
 </head>
@@ -376,11 +375,12 @@ async function createCycleWithSessions(studentId, cycleNumber){
     .single();
   if (cycleErr) throw cycleErr;
 
+  const now = new Date().toISOString();
   const slots = Array.from({ length: 8 }, (_, i) => ({
     cycle_id: cycle.id,
     slot_number: i + 1,
-    status: null
-    updated_at: new Date().toISOString()
+    status: null,
+    updated_at: now   // تسجيل تاريخ الإنشاء
   }));
   const { data: sessions, error: sessErr } = await db.from('sessions').insert(slots).select();
   if (sessErr) throw sessErr;
@@ -391,7 +391,7 @@ async function createCycleWithSessions(studentId, cycleNumber){
 
 function route(){
   if (!checkSetup()) return;
-  const hash = window.location.hash; // مثال: #student=uuid
+  const hash = window.location.hash;
   const params = new URLSearchParams(hash.replace('#', ''));
   const sid = params.get('student');
   if (sid){
@@ -586,13 +586,16 @@ function renderStudentPage(studentId){
   const current = currentCycles[0];
   const history = currentCycles.slice(1);
 
-  const slotsHtml = current.sessions.map(s => `
-    <button class="slot ${s.status || ''}" data-session-id="${s.id}">
-      <span class="slot-num">${s.slot_number}</span>
-      <span class="slot-mark">${STATUS_MARK[s.status] || ''}</span>
-      <span class="slot-date">${s.updated_at ? new Date(s.updated_at).toLocaleDateString('ar-EG') : ''}</span>
-    </button>
-  `).join('');
+  const slotsHtml = current.sessions.map(s => {
+    const dateStr = s.updated_at ? new Date(s.updated_at).toLocaleDateString('ar-EG') : '';
+    return `
+      <button class="slot ${s.status || ''}" data-session-id="${s.id}">
+        <span class="slot-num">${s.slot_number}</span>
+        <span class="slot-mark">${STATUS_MARK[s.status] || ''}</span>
+        <span class="slot-date">${dateStr}</span>
+      </button>
+    `;
+  }).join('');
 
   const historyHtml = history.length
     ? `<ul class="history-list">
@@ -647,9 +650,16 @@ async function toggleSlot(btn, studentId){
   const session = current.sessions.find(s => s.id === sessionId);
   const nextStatus = STATUS_CYCLE[String(session.status)];
 
-  const { error } = await db.from('sessions').update({ status: nextStatus,  updated_at: new Date().toISOString().toISOString() }).eq('id', sessionId);
+  const { error } = await db
+    .from('sessions')
+    .update({ 
+      status: nextStatus, 
+      updated_at: new Date().toISOString()   // تحديث التاريخ
+    })
+    .eq('id', sessionId);
   if (error){ alert('حصل خطأ: ' + error.message); return; }
   session.status = nextStatus;
+  session.updated_at = new Date().toISOString(); // تحديث محلياً
   renderStudentPage(studentId);
 }
 
