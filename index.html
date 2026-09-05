@@ -308,6 +308,13 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
   .stats-row{ grid-template-columns: 1fr 1fr; }
   .stats-row .stat-card:last-child{ grid-column: 1 / -1; }
 }
+
+.slot .slot-date {
+  font-size: 9px;
+  color: var(--ink-soft);
+  opacity: 0.7;
+  margin-top: 2px;
+}
 </style>
 </head>
 <body>
@@ -373,6 +380,7 @@ async function createCycleWithSessions(studentId, cycleNumber){
     cycle_id: cycle.id,
     slot_number: i + 1,
     status: null
+    updated_at: new Date().toISOString()
   }));
   const { data: sessions, error: sessErr } = await db.from('sessions').insert(slots).select();
   if (sessErr) throw sessErr;
@@ -582,6 +590,7 @@ function renderStudentPage(studentId){
     <button class="slot ${s.status || ''}" data-session-id="${s.id}">
       <span class="slot-num">${s.slot_number}</span>
       <span class="slot-mark">${STATUS_MARK[s.status] || ''}</span>
+      <span class="slot-date">${s.updated_at ? new Date(s.updated_at).toLocaleDateString('ar-EG') : ''}</span>
     </button>
   `).join('');
 
@@ -638,7 +647,7 @@ async function toggleSlot(btn, studentId){
   const session = current.sessions.find(s => s.id === sessionId);
   const nextStatus = STATUS_CYCLE[String(session.status)];
 
-  const { error } = await db.from('sessions').update({ status: nextStatus, updated_at: new Date().toISOString() }).eq('id', sessionId);
+  const { error } = await db.from('sessions').update({ status: nextStatus,  updated_at: new Date().toISOString().toISOString() }).eq('id', sessionId);
   if (error){ alert('حصل خطأ: ' + error.message); return; }
   session.status = nextStatus;
   renderStudentPage(studentId);
