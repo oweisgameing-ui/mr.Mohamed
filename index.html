@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دفتر الدروس</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Aref+Ruqaa:wght@700&display=swap');
+
+:root{
+  --bg: #EDEAE1;
+  --surface: #FFFFFF;
+  --ink: #24303A;
+  --ink-soft: #5B6670;
+  --primary: #3B5249;
+  --primary-soft: #6D8478;
+  --gold: #A97A2E;
+  --gold-bg: #F4E9D6;
+  --present: #4C8C5D;
+  --present-bg: #E4F0E7;
+  --absent: #AB4238;
+  --absent-bg: #F5E4E2;
+  --border: #D9D3C4;
+  --border-strong: #B9B2A0;
+  --radius: 6px;
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0;
+  padding:0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Almarai', sans-serif;
+  direction: rtl;
+}
+
+body{ min-height:100vh; }
+
+a{ color:inherit; text-decoration:none; }
+
+button{
+  font-family: inherit;
+  cursor:pointer;
+  border:none;
+}
+
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.wrap{
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+}
+
+.site-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-title{ display:flex; align-items:center; gap:12px; }
+
+.site-title h1{
+  font-family: 'Aref Ruqaa', serif;
+  font-size: 30px;
+  margin:0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.book-mark{ width: 34px; height: 34px; flex-shrink:0; }
+
+.back-link{
+  color: var(--ink-soft);
+  font-size: 15px;
+  border-bottom: 1px solid var(--border-strong);
+  padding-bottom: 2px;
+}
+.back-link:hover{ color: var(--primary); }
+
+.stats-row{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.stat-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+
+.stat-card .num{
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary);
+  display:block;
+  line-height: 1.3;
+}
+
+.stat-card .label{ font-size: 13.5px; color: var(--ink-soft); }
+.stat-card.money .num{ color: var(--gold); }
+
+.section-heading{
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+  padding-right: 2px;
+}
+
+.students-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.student-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  transition: border-color .15s ease;
+}
+.student-card:hover{ border-color: var(--primary-soft); }
+.student-card .name{ font-weight: 700; font-size: 17px; }
+.student-card .fee{ font-size: 13.5px; color: var(--ink-soft); }
+.student-card .fee b{ color: var(--gold); font-weight: 700; }
+
+.dots-row{ display:flex; gap: 5px; }
+.dot{ width: 12px; height: 12px; border-radius: 3px; background: var(--border); }
+.dot.present{ background: var(--present); }
+.dot.absent{ background: var(--absent); }
+
+.cycle-tag{ font-size: 12.5px; color: var(--ink-soft); display:flex; align-items:center; gap:6px; }
+.paid-flag{ color: var(--gold); font-weight: 700; }
+
+.add-card{
+  background: transparent;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius);
+  min-height: 118px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: var(--ink-soft);
+  font-size: 15px;
+  gap: 8px;
+}
+.add-card:hover{ border-color: var(--primary); color: var(--primary); }
+
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(36,48,58,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.modal{
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  border: 1px solid var(--border);
+}
+
+.modal h2{ margin: 0 0 18px; font-size: 19px; }
+.field{ margin-bottom: 14px; }
+.field label{ display:block; font-size: 13.5px; color: var(--ink-soft); margin-bottom: 6px; }
+
+.field input{
+  width:100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--ink);
+}
+.field input:focus{ outline: 2px solid var(--primary); outline-offset: 1px; }
+
+.modal-actions{ display:flex; gap: 10px; margin-top: 20px; }
+
+.btn{ padding: 10px 18px; border-radius: 4px; font-size: 14.5px; font-weight: 700; }
+.btn-primary{ background: var(--primary); color:#fff; }
+.btn-primary:hover{ background: #2E4139; }
+.btn-ghost{ background: transparent; color: var(--ink-soft); }
+.btn-ghost:hover{ color: var(--ink); }
+.btn-danger-ghost{ background: transparent; color: var(--absent); }
+.btn-danger-ghost:hover{ text-decoration: underline; }
+
+.student-header{
+  display:flex;
+  justify-content:space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.student-header h2{ font-size: 24px; margin: 0 0 6px; }
+.student-header .fee-line{ color: var(--ink-soft); font-size: 15px; }
+.student-header .fee-line b{ color: var(--gold); }
+
+.edit-btn{
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--border-strong);
+  padding: 7px 14px;
+  border-radius: 4px;
+  font-size: 13.5px;
+}
+.edit-btn:hover{ color: var(--primary); border-color: var(--primary-soft); }
+
+.cycle-panel{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.cycle-panel .cycle-title{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px; }
+.cycle-panel .cycle-title h3{ margin:0; font-size: 16px; color: var(--ink-soft); font-weight: 700; }
+
+.slots-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+
+.slot{
+  aspect-ratio: 1;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap: 4px;
+  background: var(--bg);
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+.slot .slot-num{ font-size: 12px; color: var(--ink-soft); }
+.slot .slot-mark{ font-size: 24px; line-height:1; }
+.slot.present{ background: var(--present-bg); border-color: var(--present); }
+.slot.present .slot-mark{ color: var(--present); }
+.slot.absent{ background: var(--absent-bg); border-color: var(--absent); }
+.slot.absent .slot-mark{ color: var(--absent); }
+
+.cycle-footer{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; }
+
+.pay-btn{ background: var(--gold); color:#fff; padding: 10px 20px; border-radius: 4px; font-size: 14.5px; font-weight: 700; }
+.pay-btn:hover{ background: #8F6626; }
+.paid-note{ color: var(--gold); font-weight: 700; font-size: 14.5px; }
+
+.new-cycle-btn{
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--ink-soft);
+  padding: 9px 16px;
+  border-radius: 4px;
+  font-size: 13.5px;
+}
+.new-cycle-btn:hover{ color: var(--primary); border-color: var(--primary-soft); }
+
+.history-list{ list-style:none; margin:0; padding:0; border-top: 1px solid var(--border); }
+.history-list li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14.5px;
+}
+.history-list .hist-label{ color: var(--ink-soft); }
+.history-list .hist-status.paid{ color: var(--gold); font-weight:700; }
+.history-list .hist-status.unpaid{ color: var(--absent); font-weight:700; }
+
+.empty-note{ color: var(--ink-soft); font-size: 14.5px; padding: 6px 4px; }
+.loading-note{ color: var(--ink-soft); font-size: 14.5px; padding: 20px 4px; }
+
+.setup-warning{
+  background: var(--absent-bg);
+  border: 1px solid var(--absent);
+  color: var(--absent);
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.7;
+}
+
+@media (max-width: 520px){
+  .stats-row{ grid-template-columns: 1fr 1fr; }
+  .stats-row .stat-card:last-child{ grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="site-header" id="siteHeader"></header>
+  <div id="setupWarning"></div>
+  <div id="app"><p class="loading-note">جارٍ التحميل...</p></div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ========================================================
+// 1) بيانات الاتصال بـ Supabase - عدّل القيمتين دول فقط
+// ========================================================
+const SUPABASE_URL = "https://menoghektvnxtahaydpx.supabase.co"; // مثال: https://xxxxxxxx.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lbm9naGVrdHZueHRhaGF5ZHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1OTk3NTUsImV4cCI6MjEwNDE3NTc1NX0.67P076FFIxKuv5xsENgd4L__hD2NWJskoG-0sUG2YXY";
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ========================================================
+// عناصر عامة + توجيه بسيط بين الصفحتين عن طريق الـ hash
+// ========================================================
+const app = document.getElementById('app');
+const modalRoot = document.getElementById('modalRoot');
+const siteHeader = document.getElementById('siteHeader');
+const setupWarning = document.getElementById('setupWarning');
+const STATUS_CYCLE = { 'null': 'present', 'present': 'absent', 'absent': null };
+const STATUS_MARK = { present: '✓', absent: '✗' };
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function closeModal(){ modalRoot.innerHTML = ''; }
+
+function checkSetup(){
+  if (SUPABASE_URL.includes('ضع_') || SUPABASE_ANON_KEY.includes('ضع_')) {
+    setupWarning.innerHTML = `<div class="setup-warning">
+      لسه ما ربطتش الموقع بقاعدة بيانات Supabase.<br>
+      افتح الملف بمحرر نصوص، ولاقي أول السكريبت SUPABASE_URL و SUPABASE_ANON_KEY وحط فيهم بيانات مشروعك من Supabase Dashboard > Project Settings > API.
+    </div>`;
+    app.innerHTML = '';
+    return false;
+  }
+  setupWarning.innerHTML = '';
+  return true;
+}
+
+async function createCycleWithSessions(studentId, cycleNumber){
+  const { data: cycle, error: cycleErr } = await db
+    .from('cycles')
+    .insert({ student_id: studentId, cycle_number: cycleNumber })
+    .select()
+    .single();
+  if (cycleErr) throw cycleErr;
+
+  const slots = Array.from({ length: 8 }, (_, i) => ({
+    cycle_id: cycle.id,
+    slot_number: i + 1,
+    status: null
+  }));
+  const { data: sessions, error: sessErr } = await db.from('sessions').insert(slots).select();
+  if (sessErr) throw sessErr;
+
+  cycle.sessions = sessions;
+  return cycle;
+}
+
+function route(){
+  if (!checkSetup()) return;
+  const hash = window.location.hash; // مثال: #student=uuid
+  const params = new URLSearchParams(hash.replace('#', ''));
+  const sid = params.get('student');
+  if (sid){
+    renderStudentHeader();
+    loadStudentPage(sid);
+  } else {
+    renderHomeHeader();
+    loadHomePage();
+  }
+}
+window.addEventListener('hashchange', route);
+
+// ========================================================
+// 2) الصفحة الرئيسية
+// ========================================================
+function renderHomeHeader(){
+  siteHeader.innerHTML = `
+    <div class="site-title">
+      <svg class="book-mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 10c6-3 12-3 18 1v27c-6-4-12-4-18-1V10Z" stroke="#3B5249" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M42 10c-6-3-12-3-18 1v27c6-4 12-4 18-1V10Z" stroke="#A97A2E" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <h1>دفتر الدروس</h1>
+    </div>
+  `;
+}
+
+async function loadHomePage(){
+  app.innerHTML = `
+    <section class="stats-row" id="statsRow">
+      <div class="stat-card"><span class="num">—</span><span class="label">عدد الطلاب</span></div>
+      <div class="stat-card"><span class="num">—</span><span class="label">أشهر مدفوعة هذا الشهر</span></div>
+      <div class="stat-card money"><span class="num">—</span><span class="label">تحصيل هذا الشهر</span></div>
+    </section>
+    <p class="section-heading">الطلاب</p>
+    <div class="students-grid" id="studentsGrid"><p class="loading-note">جارٍ التحميل...</p></div>
+  `;
+
+  const studentsGrid = document.getElementById('studentsGrid');
+  const statsRow = document.getElementById('statsRow');
+
+  const { data: students, error } = await db
+    .from('students')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error){
+    studentsGrid.innerHTML = `<p class="loading-note">حصل خطأ في تحميل البيانات: ${error.message}</p>`;
+    return;
+  }
+
+  if (!students.length){
+    renderStudentsGrid(studentsGrid, [], {});
+    renderStats(statsRow, [], []);
+    return;
+  }
+
+  const cyclesByStudent = {};
+  const allPaidCycles = [];
+
+  for (const st of students){
+    const { data: cyclesData } = await db
+      .from('cycles')
+      .select('*, sessions(*)')
+      .eq('student_id', st.id)
+      .order('cycle_number', { ascending: false });
+
+    if (!cyclesData || !cyclesData.length){
+      const cycle = await createCycleWithSessions(st.id, 1);
+      cyclesByStudent[st.id] = cycle;
+    } else {
+      cyclesByStudent[st.id] = cyclesData[0];
+      cyclesData.filter(c => c.paid).forEach(c => allPaidCycles.push(c));
+    }
+  }
+
+  renderStudentsGrid(studentsGrid, students, cyclesByStudent);
+  renderStats(statsRow, students, allPaidCycles);
+}
+
+function renderStats(statsRow, students, paidCycles){
+  const now = new Date();
+  const thisMonthPaid = paidCycles.filter(c => {
+    const d = new Date(c.paid_at);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const feeMap = {};
+  students.forEach(s => feeMap[s.id] = s.monthly_fee);
+  const total = thisMonthPaid.reduce((sum, c) => sum + (feeMap[c.student_id] || 0), 0);
+
+  statsRow.innerHTML = `
+    <div class="stat-card"><span class="num">${students.length}</span><span class="label">عدد الطلاب</span></div>
+    <div class="stat-card"><span class="num">${thisMonthPaid.length}</span><span class="label">أشهر مدفوعة هذا الشهر</span></div>
+    <div class="stat-card money"><span class="num">${total.toLocaleString('ar-EG')}</span><span class="label">تحصيل هذا الشهر</span></div>
+  `;
+}
+
+function renderStudentsGrid(studentsGrid, students, cyclesByStudent){
+  const cards = students.map(st => {
+    const cycle = cyclesByStudent[st.id];
+    const sessions = (cycle?.sessions || []).slice().sort((a,b) => a.slot_number - b.slot_number);
+    const dots = sessions.map(s => `<span class="dot ${s.status || ''}"></span>`).join('');
+    return `
+      <a class="student-card" href="#student=${st.id}">
+        <span class="name">${escapeHtml(st.name)}</span>
+        <span class="fee">اشتراك شهري: <b>${st.monthly_fee.toLocaleString('ar-EG')}</b></span>
+        <span class="dots-row">${dots}</span>
+        <span class="cycle-tag">
+          الشهر رقم ${cycle?.cycle_number ?? 1}
+          ${cycle?.paid ? '<span class="paid-flag">· مدفوع</span>' : ''}
+        </span>
+      </a>
+    `;
+  }).join('');
+
+  studentsGrid.innerHTML = cards + `<button class="add-card" id="addCardBtn">+ إضافة طالب</button>`;
+  document.getElementById('addCardBtn').addEventListener('click', openAddModal);
+}
+
+function openAddModal(){
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" id="backdrop">
+      <div class="modal">
+        <h2>إضافة طالب جديد</h2>
+        <div class="field">
+          <label for="newName">اسم الطالب</label>
+          <input type="text" id="newName" placeholder="مثال: أحمد محمد">
+        </div>
+        <div class="field">
+          <label for="newFee">الاشتراك الشهري</label>
+          <input type="number" id="newFee" placeholder="مثال: 400" min="0">
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="saveNewBtn">إضافة</button>
+          <button class="btn btn-ghost" id="cancelNewBtn">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('cancelNewBtn').addEventListener('click', closeModal);
+  document.getElementById('backdrop').addEventListener('click', (e) => { if (e.target.id === 'backdrop') closeModal(); });
+  document.getElementById('saveNewBtn').addEventListener('click', async () => {
+    const name = document.getElementById('newName').value.trim();
+    const fee = parseFloat(document.getElementById('newFee').value) || 0;
+    if (!name){ alert('من فضلك اكتب اسم الطالب'); return; }
+    const { data: student, error } = await db.from('students').insert({ name, monthly_fee: fee }).select().single();
+    if (error){ alert('حصل خطأ: ' + error.message); return; }
+    await createCycleWithSessions(student.id, 1);
+    closeModal();
+    loadHomePage();
+  });
+}
+
+// ========================================================
+// 3) صفحة الطالب
+// ========================================================
+function renderStudentHeader(){
+  siteHeader.innerHTML = `<a class="back-link" href="#">رجوع لكل الطلاب</a>`;
+}
+
+let currentStudent = null;
+let currentCycles = [];
+
+async function loadStudentPage(studentId){
+  app.innerHTML = `<p class="loading-note">جارٍ التحميل...</p>`;
+
+  const { data: st, error: stErr } = await db.from('students').select('*').eq('id', studentId).single();
+  if (stErr || !st){
+    app.innerHTML = `<p class="loading-note">الطالب غير موجود.</p>`;
+    return;
+  }
+  currentStudent = st;
+
+  const { data: cyclesData } = await db
+    .from('cycles')
+    .select('*, sessions(*)')
+    .eq('student_id', studentId)
+    .order('cycle_number', { ascending: false });
+
+  currentCycles = cyclesData || [];
+  currentCycles.forEach(c => c.sessions.sort((a,b) => a.slot_number - b.slot_number));
+
+  if (!currentCycles.length){
+    const cycle = await createCycleWithSessions(studentId, 1);
+    currentCycles = [cycle];
+  }
+
+  renderStudentPage(studentId);
+}
+
+function renderStudentPage(studentId){
+  const current = currentCycles[0];
+  const history = currentCycles.slice(1);
+
+  const slotsHtml = current.sessions.map(s => `
+    <button class="slot ${s.status || ''}" data-session-id="${s.id}">
+      <span class="slot-num">${s.slot_number}</span>
+      <span class="slot-mark">${STATUS_MARK[s.status] || ''}</span>
+    </button>
+  `).join('');
+
+  const historyHtml = history.length
+    ? `<ul class="history-list">
+        ${history.map(c => `
+          <li>
+            <span class="hist-label">الشهر رقم ${c.cycle_number}</span>
+            <span class="hist-status ${c.paid ? 'paid' : 'unpaid'}">
+              ${c.paid ? 'مدفوع - ' + new Date(c.paid_at).toLocaleDateString('ar-EG') : 'غير مدفوع'}
+            </span>
+          </li>
+        `).join('')}
+      </ul>`
+    : `<p class="empty-note">لسه معندوش أشهر سابقة.</p>`;
+
+  app.innerHTML = `
+    <div class="student-header">
+      <div>
+        <h2>${escapeHtml(currentStudent.name)}</h2>
+        <p class="fee-line">الاشتراك الشهري: <b>${currentStudent.monthly_fee.toLocaleString('ar-EG')}</b></p>
+      </div>
+      <button class="edit-btn" id="editBtn">تعديل بيانات الطالب</button>
+    </div>
+
+    <div class="cycle-panel">
+      <div class="cycle-title"><h3>الشهر الحالي (رقم ${current.cycle_number}) - 8 حصص</h3></div>
+      <div class="slots-grid">${slotsHtml}</div>
+      <div class="cycle-footer">
+        ${current.paid
+          ? `<span class="paid-note">تم الدفع بتاريخ ${new Date(current.paid_at).toLocaleDateString('ar-EG')}</span>`
+          : `<button class="pay-btn" id="payBtn">تم الدفع</button>`}
+        <button class="new-cycle-btn" id="newCycleBtn">بدء شهر جديد</button>
+      </div>
+    </div>
+
+    <p class="section-heading">الأشهر السابقة</p>
+    ${historyHtml}
+  `;
+
+  document.getElementById('editBtn').addEventListener('click', () => openEditModal(studentId));
+  document.getElementById('newCycleBtn').addEventListener('click', () => startNewCycle(studentId));
+  const payBtn = document.getElementById('payBtn');
+  if (payBtn) payBtn.addEventListener('click', () => markPaid(studentId));
+
+  document.querySelectorAll('.slot').forEach(btn => {
+    btn.addEventListener('click', () => toggleSlot(btn, studentId));
+  });
+}
+
+async function toggleSlot(btn, studentId){
+  const sessionId = btn.dataset.sessionId;
+  const current = currentCycles[0];
+  const session = current.sessions.find(s => s.id === sessionId);
+  const nextStatus = STATUS_CYCLE[String(session.status)];
+
+  const { error } = await db.from('sessions').update({ status: nextStatus, updated_at: new Date().toISOString() }).eq('id', sessionId);
+  if (error){ alert('حصل خطأ: ' + error.message); return; }
+  session.status = nextStatus;
+  renderStudentPage(studentId);
+}
+
+async function markPaid(studentId){
+  const current = currentCycles[0];
+  const { error } = await db.from('cycles').update({ paid: true, paid_at: new Date().toISOString() }).eq('id', current.id);
+  if (error){ alert('حصل خطأ: ' + error.message); return; }
+  current.paid = true;
+  current.paid_at = new Date().toISOString();
+  renderStudentPage(studentId);
+}
+
+async function startNewCycle(studentId){
+  const current = currentCycles[0];
+  const confirmMsg = current.paid
+    ? 'هل تريد بدء شهر جديد (8 حصص جديدة)؟'
+    : 'الشهر الحالي لسه غير مدفوع، هل تريد بدء شهر جديد رغم ذلك؟';
+  if (!confirm(confirmMsg)) return;
+
+  const newCycle = await createCycleWithSessions(studentId, current.cycle_number + 1);
+  currentCycles.unshift(newCycle);
+  renderStudentPage(studentId);
+}
+
+function openEditModal(studentId){
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" id="backdrop">
+      <div class="modal">
+        <h2>تعديل بيانات الطالب</h2>
+        <div class="field">
+          <label for="editName">اسم الطالب</label>
+          <input type="text" id="editName" value="${escapeHtml(currentStudent.name)}">
+        </div>
+        <div class="field">
+          <label for="editFee">الاشتراك الشهري</label>
+          <input type="number" id="editFee" value="${currentStudent.monthly_fee}" min="0">
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="saveEditBtn">حفظ</button>
+          <button class="btn btn-ghost" id="cancelEditBtn">إلغاء</button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger-ghost" id="deleteBtn">حذف الطالب نهائياً</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('cancelEditBtn').addEventListener('click', closeModal);
+  document.getElementById('backdrop').addEventListener('click', (e) => { if (e.target.id === 'backdrop') closeModal(); });
+  document.getElementById('saveEditBtn').addEventListener('click', async () => {
+    const name = document.getElementById('editName').value.trim();
+    const fee = parseFloat(document.getElementById('editFee').value) || 0;
+    if (!name){ alert('من فضلك اكتب اسم الطالب'); return; }
+    const { error } = await db.from('students').update({ name, monthly_fee: fee }).eq('id', studentId);
+    if (error){ alert('حصل خطأ: ' + error.message); return; }
+    currentStudent.name = name;
+    currentStudent.monthly_fee = fee;
+    closeModal();
+    renderStudentPage(studentId);
+  });
+  document.getElementById('deleteBtn').addEventListener('click', async () => {
+    if (!confirm('هل أنت متأكد من حذف هذا الطالب وكل بياناته؟ لا يمكن التراجع.')) return;
+    const { error } = await db.from('students').delete().eq('id', studentId);
+    if (error){ alert('حصل خطأ: ' + error.message); return; }
+    window.location.hash = '';
+  });
+}
+
+// ========================================================
+// نقطة البداية
+// ========================================================
+route();
+</script>
+</body>
+</html>
